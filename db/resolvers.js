@@ -25,9 +25,11 @@ const createToken = (user, secret, expiresIn) => {
 const resolvers = {
     Query: {
         // Usuarios
-        getUser: async (_, { token }) => {
-            const userId = await jwt.verify(token, process.env.SECRET)
-            return userId
+        getUser: async (_, { }, ctx) => {
+            if(ctx && ctx.user)
+                return ctx.user
+            else 
+                throw new Error("No autorizado") 
         },
 
         // Productos
@@ -65,14 +67,18 @@ const resolvers = {
         },
 
         getClientSeller: async (_, {}, ctx) => {
-            try {
-                
-                const clients = await Client.find({ seller: ctx.user.id.toString() })
-                return clients
 
-            } catch (error) {
-                console.log(error);
-            }
+            if(ctx && ctx.user)
+                try {
+                    
+                    const clients = await Client.find({ seller: ctx.user.id.toString() })
+                    return clients
+
+                } catch (error) {
+                    console.log(error);
+                }
+            else 
+                throw new Error("No autorizado") 
         },
 
         getClient: async (_, { id }, ctx) => {
