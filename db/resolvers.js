@@ -287,27 +287,31 @@ const resolvers = {
         // Clientes
         createClient: async (_, { input }, ctx) => {
 
-            const { email } = input
+            if(ctx && ctx.user){
+                const { email } = input
 
-            // Verificar si ya exist el cliente
-            const client = await Client.findOne({ email })
+                // Verificar si ya exist el cliente
+                const client = await Client.findOne({ email })
 
-            if(client) throw new Error("Ese cliente ya esta registrado")
+                if(client) throw new Error("Ese cliente ya esta registrado")
 
-            const newClient = new Client(input)
+                const newClient = new Client(input)
 
-            // Asignar el vendedor 
-            newClient.seller = ctx.user.id
+                // Asignar el vendedor 
+                newClient.seller = ctx.user.id
 
-            // Guardar en la base de datos
-            try {
+                // Guardar en la base de datos
+                try {
 
-                const result = await newClient.save()
-                return result
+                    const result = await newClient.save()
+                    return result
 
-            } catch (error) {
-                console.log(error);
-            }   
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+            else 
+                throw new Error("No autorizado")
         },
 
         updateClient: async (_, { id, input }, ctx) => {
