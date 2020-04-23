@@ -82,17 +82,22 @@ const resolvers = {
         },
 
         getClient: async (_, { id }, ctx) => {
-            
-            // Revisar si el cliente existe
-            const client = await Client.findById(id)
 
-            if(!client) throw new Error("El cliente no existe")
-
-            // Quien lo creo lo puede ver
-            if(client.seller.toString() !== ctx.user.id) 
-                throw new Error("No tienes la credenciales")
-
-            return client
+            if(ctx && ctx.user) {
+                
+                // Revisar si el cliente existe
+                const client = await Client.findById(id)
+    
+                if(!client) throw new Error("El cliente no existe")
+    
+                // Quien lo creo lo puede ver
+                if(client.seller.toString() !== ctx.user.id) 
+                    throw new Error("No tienes la credenciales")
+    
+                return client
+            }
+            else 
+                throw new Error("No autorizado") 
         },
 
         // Pedidos
@@ -315,36 +320,47 @@ const resolvers = {
         },
 
         updateClient: async (_, { id, input }, ctx) => {
-            
-            // Verificar si existe o no
-            let client = await Client.findById( id )
 
-            if(!client) throw new Error("Ese cliente no existe")
+            if(ctx && ctx.user){
 
-            // Verificar si el vendedor es quien edita
-            if(client.seller.toString() !== ctx.user.id) 
-                throw new Error("No tienes la credenciales")
-
-            // Guardar el cliente
-            client = await Client.findOneAndUpdate({ _id: id }, input, { new: true })
-            return client
+                // Verificar si existe o no
+                let client = await Client.findById( id )
+    
+                if(!client) throw new Error("Ese cliente no existe")
+    
+                // Verificar si el vendedor es quien edita
+                if(client.seller.toString() !== ctx.user.id) 
+                    throw new Error("No tienes la credenciales")
+    
+                // Guardar el cliente
+                client = await Client.findOneAndUpdate({ _id: id }, input, { new: true })
+                return client
+            }
+            else 
+                throw new Error("No autorizado")
 
         },
 
         deleteClient: async (_, { id }, ctx) => {
-            // Verificar si existe o no
-            let client = await Client.findById( id )
 
-            if(!client) throw new Error("Ese cliente no existe")
+            if(ctx && ctx.user){ 
+                // Verificar si existe o no
+                let client = await Client.findById( id )
 
-            // Verificar si el vendedor es quien edita
-            if(client.seller.toString() !== ctx.user.id) 
-                throw new Error("No tienes la credenciales")
+                if(!client) throw new Error("Ese cliente no existe")
 
-            // Eliminar cliente
-            await Client.findOneAndDelete({ _id: id })
+                // Verificar si el vendedor es quien edita
+                if(client.seller.toString() !== ctx.user.id) 
+                    throw new Error("No tienes la credenciales")
 
-            return "Cliente eliminado"
+                // Eliminar cliente
+                await Client.findOneAndDelete({ _id: id })
+
+                return "Cliente eliminado"
+            }
+            else 
+                throw new Error("No autorizado")
+            
         },
 
         // Pedidos
