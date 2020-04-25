@@ -366,40 +366,46 @@ const resolvers = {
         // Pedidos
         createOrder: async (_, { input }, ctx) => {
 
-            const { client } = input
-            
-            // Verificar si el cliente existe
-            let exist = await Client.findById( client )
+            if(ctx && ctx.user){ 
 
-            if(!exist) throw new Error("Ese cliente no existe")
+                const { client } = input
+                
+                // Verificar si el cliente existe
+                let exist = await Client.findById( client )
+    
+                if(!exist) throw new Error("Ese cliente no existe")
+    
+                // Verificar si el cliente es del vendedor
+                if(exist.seller.toString() !== ctx.user.id) 
+                    throw new Error("No tienes la credenciales")
+    
+                // Revisar que el stock este disponible
+                for await (const article of input.order) {
+                    const { id, quantity } = article
+    
+                    const product = await Product.findById(id)
+    
+                    if(quantity > product.stock) 
+                        throw new Error(`El artículo: ${product.name} excede la cantidad disponible`)
+                    else{
+                        // Restar la cantidad a lo disponible
+                        product.stock = product.stock - quantity
+                        await product.save()
+                    }
+                };
+    
+                // Asignarle un vendedor
+                const newOrder = new Order(input)
+                newOrder.seller = ctx.user.id
+    
+                // Guardarlo en la base de datos
+                const result = await newOrder.save()
+    
+                return result
+            }
+            else 
+                throw new Error("No autorizado")
 
-            // Verificar si el cliente es del vendedor
-            if(exist.seller.toString() !== ctx.user.id) 
-                throw new Error("No tienes la credenciales")
-
-            // Revisar que el stock este disponible
-            for await (const article of input.order) {
-                const { id, quantity } = article
-
-                const product = await Product.findById(id)
-
-                if(quantity > product.stock) 
-                    throw new Error(`El articulo: ${product.name} excede la cantidad disponible`)
-                else{
-                    // Restar la cantidad a lo disponible
-                    product.stock = product.stock - quantity
-                    await product.save()
-                }
-            };
-
-            // Asignarle un vendedor
-            const newOrder = new Order(input)
-            newOrder.seller = ctx.user.id
-
-            // Guardarlo en la base de datos
-            const result = await newOrder.save()
-
-            return result
         },
 
         updateOrder: async (_, { id, input }, ctx) => {

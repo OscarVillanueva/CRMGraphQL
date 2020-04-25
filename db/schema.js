@@ -35,7 +35,9 @@ const typeDefs = gql`
 
     type OrderGroup {
         id: ID
-        quantity: Int
+        quantity: Int,
+        name: String
+        price: Float
     }
 
     type Order {
@@ -86,7 +88,9 @@ const typeDefs = gql`
 
     input OrderProductInput {
         id: ID
-        quantity: Int
+        quantity: Int,
+        name: String
+        price: Float
     }
 
     input OrderInput {
