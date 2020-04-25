@@ -114,15 +114,18 @@ const resolvers = {
 
         getOrdersSeller: async (_, {}, ctx) => {
             
-            try {
+            if(ctx && ctx.user) {
+                try {
 
-                const orders = await Order.find({ seller: ctx.user.id })
-                return orders
+                    const orders = await Order.find({ seller: ctx.user.id })
+                    return orders
 
-            } catch (error) {
-                console.log(error);
+                } catch (error) {
+                    console.log(error);
+                }
             }
-
+            else 
+                throw new Error("No autorizado") 
         },
 
         getOrder: async (_, { id }, ctx) => {
