@@ -117,7 +117,7 @@ const resolvers = {
             if(ctx && ctx.user) {
                 try {
 
-                    const orders = await Order.find({ seller: ctx.user.id })
+                    const orders = await Order.find({ seller: ctx.user.id }).populate("client")
                     return orders
 
                 } catch (error) {
@@ -400,10 +400,11 @@ const resolvers = {
                 // Asignarle un vendedor
                 const newOrder = new Order(input)
                 newOrder.seller = ctx.user.id
+                newOrder.client = exist
     
                 // Guardarlo en la base de datos
                 const result = await newOrder.save()
-    
+
                 return result
             }
             else 
@@ -413,58 +414,68 @@ const resolvers = {
 
         updateOrder: async (_, { id, input }, ctx) => {
 
-            const { client } = input
+            if(ctx && ctx.user){
 
-            // Verificar si el pedido existe
-            const existOrder = await Order.findById(id)
-
-            if(!existOrder) throw new Error("El pedido no existe")
-
-            // Verificar si el cliente existe
-            const existClient = await Client.findById(client)
-
-            if(!existClient) throw new Error("El cliente no existe")
-
-            // Si el cliente y pedido pertenecen al vendedor
-            // Verificar si el cliente es del vendedor
-            if(existClient.seller.toString() !== ctx.user.id) 
-                throw new Error("No tienes la credenciales")
-
-            // Revisar el stock
-            if(input.order)
-                for await (const article of input.order) {
-                    const { id, quantity } = article
+                const { client } = input
     
-                    const product = await Product.findById(id)
+                // Verificar si el pedido existe
+                const existOrder = await Order.findById(id)
     
-                    if(quantity > product.stock) 
-                        throw new Error(`El articulo: ${product.name} excede la cantidad disponible`)
-                    else{
-                        // Restar la cantidad a lo disponible
-                        product.stock = product.stock - quantity
-                        await product.save()
-                    }
-                };
+                if(!existOrder) throw new Error("El pedido no existe")
+    
+                // Verificar si el cliente existe
+                const existClient = await Client.findById(client)
+    
+                if(!existClient) throw new Error("El cliente no existe")
+    
+                // Si el cliente y pedido pertenecen al vendedor
+                // Verificar si el cliente es del vendedor
+                if(existClient.seller.toString() !== ctx.user.id) 
+                    throw new Error("No tienes la credenciales")
+    
+                // Revisar el stock
+                if(input.order)
+                    for await (const article of input.order) {
+                        const { id, quantity } = article
+        
+                        const product = await Product.findById(id)
+        
+                        if(quantity > product.stock) 
+                            throw new Error(`El articulo: ${product.name} excede la cantidad disponible`)
+                        else{
+                            // Restar la cantidad a lo disponible
+                            product.stock = product.stock - quantity
+                            await product.save()
+                        }
+                    };
+    
+                // Guardar el pedido
+                const result = await Order.findOneAndUpdate({_id: id}, input, { new: true })
+                return result
+            }
+            else 
+                throw new Error("No autorizado")
 
-            // Guardar el pedido
-            const result = await Order.findOneAndUpdate({_id: id}, input, { new: true })
-            return result
         },
 
         deleteOrder: async (_, { id }, ctx) => {
-            // Verificar si existe o no
-            let order = await Order.findById( id )
+            if(ctx && ctx.user){
+                // Verificar si existe o no
+                let order = await Order.findById( id )
 
-            if(!order) throw new Error("Pedido no encontrado")
+                if(!order) throw new Error("Pedido no encontrado")
 
-            // Verificar si el vendedor es quien edita
-            if(order.seller.toString() !== ctx.user.id) 
-                throw new Error("No tienes la credenciales")
+                // Verificar si el vendedor es quien edita
+                if(order.seller.toString() !== ctx.user.id) 
+                    throw new Error("No tienes la credenciales")
 
-            // Eliminar cliente
-            await Order.findOneAndDelete({ _id: id })
+                // Eliminar cliente
+                await Order.findOneAndDelete({ _id: id })
 
-            return "Pedido eliminado"
+                return "Pedido eliminado"
+            }
+            else 
+                throw new Error("No autorizado")
         },
     }
 }
