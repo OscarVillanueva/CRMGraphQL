@@ -169,7 +169,7 @@ const resolvers = {
                     $sort: { total: -1}
                 },
                 {
-                    $limit: 10
+                    $limit: 3
                 }
             ])
 
