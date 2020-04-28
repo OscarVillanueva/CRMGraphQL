@@ -8,7 +8,13 @@ const typeDefs = gql`
         name: String
         lastName: String
         email: String
+        type: UserType
         created: String
+    }
+
+    enum UserType {
+        Admin
+        Normal
     }
 
     type Token {
@@ -65,6 +71,7 @@ const typeDefs = gql`
         lastName: String!
         email: String!
         password: String!
+        type: UserType!
     }
 
     input AuthInput {

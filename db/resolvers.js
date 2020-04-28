@@ -7,13 +7,14 @@ const Client = require("../models/Client")
 const Order = require("../models/Order")
 
 const createToken = (user, secret, expiresIn) => {
-    const { id, name, email, lastName } = user
+    const { id, name, email, lastName, type } = user
 
     return jwt.sign({
         id,
         name, 
         email,
-        lastName
+        lastName,
+        type
     }, secret, {
         expiresIn
     })
@@ -211,27 +212,31 @@ const resolvers = {
 
     Mutation: {
         // Usuarios
-        createUser: async (_, { input }) => {
+        createUser: async (_, { input }, ctx) => {
 
-            const { email, password } = input
+            if(ctx && ctx.user && ctx.user.type === "Admin"){
+                const { email, password } = input
 
-            // Revisar si el usuario esta registrado
-            const isAlreadyUser = await User.findOne({email})
+                // Revisar si el usuario esta registrado
+                const isAlreadyUser = await User.findOne({email})
 
-            if(isAlreadyUser) throw new Error("El usuario ya esta registrado")
+                if(isAlreadyUser) throw new Error("El usuario ya esta registrado")
 
-            // Hashear el password
-            const salt = await bcryptjs.genSalt(10)
-            input.password = await bcryptjs.hash(password, salt)
+                // Hashear el password
+                const salt = await bcryptjs.genSalt(10)
+                input.password = await bcryptjs.hash(password, salt)
 
-            try {
-                // Guardarlo en la base de datos
-                const user = new User(input)
-                user.save()
-                return user
-            } catch (error) {
-                console.log(error);
+                try {
+                    // Guardarlo en la base de datos
+                    const user = new User(input)
+                    user.save()
+                    return user
+                } catch (error) {
+                    console.log(error);
+                }
             }
+            else 
+                throw new Error("No autorizado")
         },
 
         authenticateUser: async (_, { input }) => {
