@@ -105,7 +105,13 @@ const resolvers = {
         getOrders: async () => {
             try {
 
-                const orders = await Order.find({}).populate("client")
+                const orders = await Order.find({}).populate("client").populate({
+                    path: "seller",
+                    populate: {
+                        path: "user",
+                        model: "User"
+                    }
+                })
                 return orders
 
             } catch (error) {

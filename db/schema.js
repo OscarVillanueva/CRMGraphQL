@@ -56,6 +56,16 @@ const typeDefs = gql`
         status: OrderStatus
     }
 
+    type FullOrder {
+        id: ID
+        order: [OrderGroup]
+        total: Float
+        client: Client
+        seller: User
+        date: String
+        status: OrderStatus
+    }
+
     type TopClient {
         total: Float
         client: [Client]
@@ -127,7 +137,7 @@ const typeDefs = gql`
         getClient(id: ID!): Client
 
         # Pedidos
-        getOrders: [Order]
+        getOrders: [FullOrder]
         getOrdersSeller: [Order]
         getOrder(id: ID!): Order
         getOrderStatus(status: OrderStatus!): [Order]
