@@ -105,7 +105,7 @@ const resolvers = {
         getOrders: async () => {
             try {
 
-                const orders = await Order.find({})
+                const orders = await Order.find({}).populate("client")
                 return orders
 
             } catch (error) {
