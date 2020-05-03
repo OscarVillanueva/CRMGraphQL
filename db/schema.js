@@ -126,6 +126,7 @@ const typeDefs = gql`
     type Query {
         # Usuarios
         getUser: User
+        getUsers: [User]
 
         # Productos
         getProducts: [Product]
@@ -152,6 +153,7 @@ const typeDefs = gql`
         # Usuarios
         createUser(input: UserInput!): User
         authenticateUser(input: AuthInput!): Token
+        deleteUser(id: ID!): String
 
         # Productos
         createProduct(input: ProductInput!): Product

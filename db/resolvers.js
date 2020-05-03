@@ -33,6 +33,15 @@ const resolvers = {
                 throw new Error("No autorizado") 
         },
 
+        getUsers: async (_, { }, ctx) => {
+            if(ctx && ctx.user && ctx.user.type === "Admin"){
+                const users = await User.find({})
+                return users
+            }
+            else 
+                throw new Error("No autorizado") 
+        },
+
         // Productos
         getProducts: async () => {
             try {
@@ -262,6 +271,23 @@ const resolvers = {
             return {
                 token: createToken(existUser, process.env.SECRET, "24h")
             }
+        },
+
+        deleteUser: async (_, { id }, ctx) => {
+            if(ctx && ctx.user && ctx.user.type === "Admin"){
+
+                // Revisamos si existe el usuario a borrar
+                const user = await User.findById(id)
+
+                if(!user) throw new Error("El vendedor no existe")
+
+                // Borramos
+                await User.findOneAndDelete({ _id: id })
+
+                return "Vendedor eliminado"
+            }
+            else 
+                throw new Error("No autorizado") 
         },
 
         // Productos
